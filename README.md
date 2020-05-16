@@ -44,3 +44,8 @@ python ./downloader.py \
     -images_per_class 500 \
     -multiprocessing_workers 24
 ```
+
+# Differences from the original repository
+
+The problem that prevents the script from working on Windows has been fixed.
+Minor changes in the script and with the recording of files.
