@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import time
-from multiprocessing import Value, Lock, Pool
+from multiprocessing import Value, Lock
 from multiprocessing.pool import ThreadPool
 from tqdm import tqdm
 
@@ -33,10 +33,6 @@ def main():
 
     if len(args.data_root) == 0:
         logging.error("-data_root is required to run downloader!")
-        exit()
-
-    if not os.path.isdir(args.data_root):
-        logging.error(f'folder {args.data_root} does not exist! please provide existing folder in -data_root arg!')
         exit()
 
     def imagenet_api_wnid_to_urls(wnid):
@@ -84,27 +80,8 @@ def main():
     print("Picked the following clases: \nCount: %s" % len(classes_to_scrape))
     print([class_info_dict[class_wnid]['class_name'] for class_wnid in classes_to_scrape])
 
-    imagenet_images_folder = os.path.join(args.data_root, 'imagenet_images')
-    if not os.path.isdir(imagenet_images_folder):
-        os.mkdir(imagenet_images_folder)
-
-    scraping_stats = dict(
-        all=dict(
-            tried=0,
-            success=0,
-            time_spent=0,
-        ),
-        is_flickr=dict(
-            tried=0,
-            success=0,
-            time_spent=0,
-        ),
-        not_flickr=dict(
-            tried=0,
-            success=0,
-            time_spent=0,
-        )
-    )
+    if not os.path.isdir(args.data_root):
+        os.mkdir(args.data_root)
 
     def add_debug_csv_row(row):
         with open('stats.csv', "a") as csv_f:
@@ -201,13 +178,17 @@ def main():
     class_images = Value('d', 0)
 
     def get_image(img_url):
+        def check():
+            with lock:
+                cls_imgs = class_images.value
+
+            if cls_imgs >= args.images_per_class:
+                return True
+
         if len(img_url) <= 1:
             return
 
-        with lock:
-            cls_imgs = class_images.value
-
-        if cls_imgs >= args.images_per_class:
+        if check():
             return
 
         logging.debug(img_url)
@@ -290,6 +271,9 @@ def main():
         img_file_path = os.path.join(class_folder, img_name)
         logging.debug(f'Saving image in {img_file_path}')
 
+        if check():
+            return
+
         with open(img_file_path, 'wb') as img_f:
             img_f.write(img_resp.content)
 
@@ -312,7 +296,7 @@ def main():
         time.sleep(0.05)
         resp = requests.get(url_urls)
 
-        class_folder = os.path.join(imagenet_images_folder, class_name)
+        class_folder = os.path.join(args.data_root, class_name)
         if not os.path.exists(class_folder):
             os.mkdir(class_folder)
 
