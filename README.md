@@ -1,5 +1,7 @@
 # ImageNet Downloader
 
+06 July 2021 - #Updated to windows usage
+
 This is ImageNet dataset downloader. **You can create new datasets from subsets of ImageNet by specifying how many 
 classes you need and how many images per class you need.** 
 This is achieved by using image urls provided by ImageNet API.
