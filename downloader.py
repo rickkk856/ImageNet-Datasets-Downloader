@@ -36,7 +36,7 @@ def main():
         exit()
 
     def imagenet_api_wnid_to_urls(wnid):
-        return f'http://www.image-net.org/api/text/imagenet.synset.geturls?wnid={wnid}'
+        return f'http://www.image-net.org/api/imagenet.synset.geturls?wnid={wnid}'
 
     current_folder = os.path.dirname(os.path.realpath(__file__))
 
